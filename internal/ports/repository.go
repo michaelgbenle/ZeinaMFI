@@ -11,6 +11,6 @@ type Repository interface {
 	Deposit(money *models.Money, creditor *models.User) (*models.Transaction, error)
 	Withdraw(money *models.Money, user *models.User) (*models.Transaction, error)
 	GetAllUsers() (*[]models.User, error)
-	GetTransactions(user *models.User) (*[]models.Transaction, error)
+	GetTransactions(accountNo string) (*[]models.Transaction, error)
 	LockSavings(money *models.Money, user *models.User) (*models.Transaction, error)
 }

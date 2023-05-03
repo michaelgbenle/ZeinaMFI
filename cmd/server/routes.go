@@ -36,7 +36,7 @@ func SetupRouter(handler *api.HTTPHandler, repository ports.Repository) *gin.Eng
 		authorizeAdmin.PATCH("deposit", handler.DepositHandler)
 		authorizeAdmin.PATCH("withdraw", handler.WithdrawHandler)
 		authorizeAdmin.PATCH("lock", handler.LockSavingsHandler)
-		authorizeAdmin.GET("transactions", handler.TransactionsHandler)
+		authorizeAdmin.GET("transactions/:account_no", handler.TransactionsHandler)
 	}
 
 	return router

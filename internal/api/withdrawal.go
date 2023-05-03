@@ -35,7 +35,7 @@ func (u *HTTPHandler) WithdrawHandler(c *gin.Context) {
 	}
 
 	//check if user has enough money
-	if util.InsufficientBalance(user.Balance.Available, withdraw.Amount) {
+	if util.InsufficientBalance(user.AvailableBalance, withdraw.Amount) {
 		util.Response(c, "error", 400, nil, []string{"insufficient balance"})
 		return
 	}

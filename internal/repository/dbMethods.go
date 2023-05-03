@@ -52,8 +52,8 @@ func (p *Postgres) CreateUser(user *models.User) error {
 	user.ID = uuid.New().String()
 	user.Password = pass
 	user.AccountNo = strconv.Itoa(util.GenerateAccountNumber())
-	user.Balance.Available = 0
-	user.Balance.Locked = 0
+	user.AvailableBalance = 0
+	user.LockedBalance = 0
 	user.CreatedAt = time.Now()
 
 	err := p.DB.Create(&user).Error
@@ -72,9 +72,9 @@ func (p *Postgres) GetAllUsers() (*[]models.User, error) {
 	return users, nil
 }
 
-func (p *Postgres) GetTransactions(user *models.User) (*[]models.Transaction, error) {
+func (p *Postgres) GetTransactions(accountNo string) (*[]models.Transaction, error) {
 	transactions := &[]models.Transaction{}
-	if err := p.DB.Where("account_nos= ?", user.AccountNo).Find(&transactions).Error; err != nil {
+	if err := p.DB.Where("account_no= ?", accountNo).Find(&transactions).Error; err != nil {
 		return nil, err
 	}
 	return transactions, nil
@@ -83,20 +83,18 @@ func (p *Postgres) GetTransactions(user *models.User) (*[]models.Transaction, er
 func (p *Postgres) Deposit(money *models.Money, user *models.User) (*models.Transaction, error) {
 
 	//update user account
-	err := p.DB.Model(&user).Update("available", user.Balance.Available+money.Amount).Error
+	err := p.DB.Model(&user).Update("available_balance", user.AvailableBalance+money.Amount).Error
 	if err != nil {
 		log.Println(err)
 		transaction := &models.Transaction{
-			TransactionID: uuid.NewString(),
-			UserEmail:     user.Email,
-			AccountNo:     user.AccountNo,
-			Balance: models.Balance{
-				Available: user.Balance.Available,
-				Locked:    user.Balance.Locked,
-			},
-			TransactionType: "Deposit",
-			Success:         false,
-			CreatedAt:       time.Now(),
+			TransactionID:    uuid.NewString(),
+			UserEmail:        user.Email,
+			AccountNo:        user.AccountNo,
+			AvailableBalance: user.AvailableBalance,
+			LockedBalance:    user.LockedBalance,
+			TransactionType:  "Deposit",
+			Success:          false,
+			CreatedAt:        time.Now(),
 		}
 		err = p.DB.Create(&transaction).Error
 		if err != nil {
@@ -106,16 +104,14 @@ func (p *Postgres) Deposit(money *models.Money, user *models.User) (*models.Tran
 		return transaction, err
 	}
 	transaction := &models.Transaction{
-		TransactionID: uuid.NewString(),
-		UserEmail:     user.Email,
-		AccountNo:     user.AccountNo,
-		Balance: models.Balance{
-			Available: user.Balance.Available,
-			Locked:    user.Balance.Locked,
-		},
-		TransactionType: "Deposit",
-		Success:         true,
-		CreatedAt:       time.Now(),
+		TransactionID:    uuid.NewString(),
+		UserEmail:        user.Email,
+		AccountNo:        user.AccountNo,
+		AvailableBalance: user.AvailableBalance,
+		LockedBalance:    user.LockedBalance,
+		TransactionType:  "Deposit",
+		Success:          true,
+		CreatedAt:        time.Now(),
 	}
 	err = p.DB.Create(&transaction).Error
 	if err != nil {
@@ -128,20 +124,18 @@ func (p *Postgres) Deposit(money *models.Money, user *models.User) (*models.Tran
 func (p *Postgres) Withdraw(money *models.Money, user *models.User) (*models.Transaction, error) {
 
 	//update user account
-	err := p.DB.Model(&user).Update("available", user.Balance.Available-money.Amount).Error
+	err := p.DB.Model(&user).Update("available_balance", user.AvailableBalance-money.Amount).Error
 	if err != nil {
 		log.Println(err)
 		transaction := &models.Transaction{
-			TransactionID: uuid.NewString(),
-			UserEmail:     user.Email,
-			AccountNo:     user.AccountNo,
-			Balance: models.Balance{
-				Available: user.Balance.Available,
-				Locked:    user.Balance.Locked,
-			},
-			TransactionType: "Withdraw",
-			Success:         false,
-			CreatedAt:       time.Now(),
+			TransactionID:    uuid.NewString(),
+			UserEmail:        user.Email,
+			AccountNo:        user.AccountNo,
+			AvailableBalance: user.AvailableBalance,
+			LockedBalance:    user.LockedBalance,
+			TransactionType:  "Withdraw",
+			Success:          false,
+			CreatedAt:        time.Now(),
 		}
 		err = p.DB.Create(&transaction).Error
 		if err != nil {
@@ -151,16 +145,14 @@ func (p *Postgres) Withdraw(money *models.Money, user *models.User) (*models.Tra
 		return transaction, err
 	}
 	transaction := &models.Transaction{
-		TransactionID: uuid.NewString(),
-		UserEmail:     user.Email,
-		AccountNo:     user.AccountNo,
-		Balance: models.Balance{
-			Available: user.Balance.Available,
-			Locked:    user.Balance.Locked,
-		},
-		TransactionType: "Withdraw",
-		Success:         true,
-		CreatedAt:       time.Now(),
+		TransactionID:    uuid.NewString(),
+		UserEmail:        user.Email,
+		AccountNo:        user.AccountNo,
+		AvailableBalance: user.AvailableBalance,
+		LockedBalance:    user.LockedBalance,
+		TransactionType:  "Withdraw",
+		Success:          true,
+		CreatedAt:        time.Now(),
 	}
 	err = p.DB.Create(&transaction).Error
 	if err != nil {
@@ -170,16 +162,17 @@ func (p *Postgres) Withdraw(money *models.Money, user *models.User) (*models.Tra
 	return transaction, nil
 }
 
+//if i had more time, i would have implemented the time duration period for locking savings
 func (p *Postgres) LockSavings(money *models.Money, user *models.User) (*models.Transaction, error) {
 
 	//Begin transaction to lock savings
 	err := p.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&user).Update("available", user.Balance.Available-money.Amount).Error; err != nil {
+		if err := tx.Model(&user).Update("available_balance", user.AvailableBalance-money.Amount).Error; err != nil {
 			log.Println(err)
 			return err
 		}
 
-		if err := tx.Model(&user).Update("locked", user.Balance.Locked+money.Amount).Error; err != nil {
+		if err := tx.Model(&user).Update("locked_balance", user.LockedBalance+money.Amount).Error; err != nil {
 			log.Println(err)
 			return err
 		}
@@ -189,16 +182,14 @@ func (p *Postgres) LockSavings(money *models.Money, user *models.User) (*models.
 	if err != nil {
 		log.Println(err)
 		transaction := &models.Transaction{
-			TransactionID: uuid.NewString(),
-			UserEmail:     user.Email,
-			AccountNo:     user.AccountNo,
-			Balance: models.Balance{
-				Available: user.Balance.Available,
-				Locked:    user.Balance.Locked,
-			},
-			TransactionType: "Lock Savings",
-			Success:         false,
-			CreatedAt:       time.Now(),
+			TransactionID:    uuid.NewString(),
+			UserEmail:        user.Email,
+			AccountNo:        user.AccountNo,
+			AvailableBalance: user.AvailableBalance,
+			LockedBalance:    user.LockedBalance,
+			TransactionType:  "Lock Savings",
+			Success:          false,
+			CreatedAt:        time.Now(),
 		}
 		err = p.DB.Create(&transaction).Error
 		if err != nil {
@@ -209,22 +200,19 @@ func (p *Postgres) LockSavings(money *models.Money, user *models.User) (*models.
 	}
 
 	transaction := &models.Transaction{
-		TransactionID: uuid.NewString(),
-		UserEmail:     user.Email,
-		AccountNo:     user.AccountNo,
-		Balance: models.Balance{
-			Available: user.Balance.Available,
-			Locked:    user.Balance.Locked,
-		},
-		TransactionType: "Lock Savings",
-		Success:         true,
-		CreatedAt:       time.Now(),
+		TransactionID:    uuid.NewString(),
+		UserEmail:        user.Email,
+		AccountNo:        user.AccountNo,
+		AvailableBalance: user.AvailableBalance,
+		LockedBalance:    user.LockedBalance,
+		TransactionType:  "Lock Savings",
+		Success:          true,
+		CreatedAt:        time.Now(),
 	}
 	err = p.DB.Create(&transaction).Error
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-
 	return transaction, err
 }

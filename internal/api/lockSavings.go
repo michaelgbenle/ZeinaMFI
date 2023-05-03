@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+//if i had more time, i would have implemented the time duration period for locking savings
 func (u *HTTPHandler) LockSavingsHandler(c *gin.Context) {
 	_, err := u.GetUserFromContext(c)
 	if err != nil {
@@ -35,7 +36,7 @@ func (u *HTTPHandler) LockSavingsHandler(c *gin.Context) {
 	}
 
 	//check if user has enough money
-	if util.InsufficientBalance(user.Balance.Available, lock.Amount) {
+	if util.InsufficientBalance(user.AvailableBalance, lock.Amount) {
 		util.Response(c, "error", 400, nil, []string{"insufficient balance"})
 		return
 	}
