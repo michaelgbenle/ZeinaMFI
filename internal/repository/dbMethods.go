@@ -37,7 +37,7 @@ func (p *Postgres) FindUserById(Id string) (*models.User, error) {
 
 func (p *Postgres) FindUserByAccountNos(account string) (*models.User, error) {
 	user := &models.User{}
-	if err := p.DB.Where("account_nos = ?", account).First(&user).Error; err != nil {
+	if err := p.DB.Where("account_no = ?", account).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil

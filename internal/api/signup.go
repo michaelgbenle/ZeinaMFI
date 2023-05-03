@@ -26,6 +26,11 @@ func (u *HTTPHandler) SignUpHandler(c *gin.Context) {
 		return
 	}
 
+	if user.UserType != models.Admin && user.UserType != models.Customer {
+		util.Response(c, "error", 400, nil, []string{"invalid user type"})
+		return
+	}
+
 	//check if user already exists
 	_, err = u.Repository.FindUserByEmail(user.Email)
 	if err == nil {

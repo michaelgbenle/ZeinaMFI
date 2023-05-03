@@ -2,6 +2,8 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "github.com/lib/pq"
 	"github.com/michaelgbenle/ZeinaMFI/internal/models"
 	"github.com/michaelgbenle/ZeinaMFI/internal/ports"
 	"log"
