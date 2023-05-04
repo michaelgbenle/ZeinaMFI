@@ -37,11 +37,6 @@ func AuthorizeAdmin(findUserByEmail func(string) (*models.User, error), tokenInB
 			RespondAndAbort(c, "", http.StatusInternalServerError, nil, []string{"internal server errors"})
 			return
 		}
-		if user.UserType != models.Admin {
-			log.Printf("user is not admin\n")
-			RespondAndAbort(c, "", http.StatusUnauthorized, nil, []string{"unauthorized"})
-			return
-		}
 
 		// set the user and token as context parameters.
 		c.Set("user", user)

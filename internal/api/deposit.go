@@ -34,6 +34,12 @@ func (u *HTTPHandler) DepositHandler(c *gin.Context) {
 		return
 	}
 
+	//ensure only customers can deposit into their account
+	if user.UserType == models.Admin {
+		util.Response(c, "error", 400, nil, []string{"cannot deposit into admin account"})
+		return
+	}
+
 	//deposit user's money
 	transaction, depositErr := u.Repository.Deposit(deposit, user)
 	if depositErr != nil {
