@@ -23,6 +23,7 @@ func SetupRouter(handler *api.HTTPHandler, repository ports.Repository) *gin.Eng
 
 	r := router.Group("/")
 	{
+		r.GET("/", handler.LiveHandler)
 		r.GET("/live", handler.LiveHandler)
 		r.GET("/users", handler.GetAllUsersHandler)
 		r.POST("/register", handler.SignUpHandler)
